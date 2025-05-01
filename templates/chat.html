@@ -125,27 +125,17 @@
     });
 
     document.getElementById('send').onclick = function() {
-        var input = document.getElementById('message');
-        var text = input.value.trim();
-        if (text !== '') {
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000); // ms
-            const hanoi = new Date(utc + (7 * 60 * 60 * 1000)); // GMT+7
-
-            const hours = hanoi.getHours().toString().padStart(2, '0');
-            const minutes = hanoi.getMinutes().toString().padStart(2, '0');
-            const timeString = `${hours}:${minutes}`;
-
-            socket.send({
-                username: username,
-                text: text,
-                color: userColor,
-                time: timeString
-            });
-            input.value = '';
-        }
-    };
-
+    var input = document.getElementById('message');
+    var text = input.value.trim();
+    if (text !== '') {
+        socket.send({
+            username: username,
+            text: text,
+            color: userColor
+        });
+        input.value = '';
+    }
+};
     document.getElementById('clear').onclick = function() {
         if (confirm("Bạn có chắc muốn xóa hết tin nhắn không?")) {
             socket.emit('clear');
