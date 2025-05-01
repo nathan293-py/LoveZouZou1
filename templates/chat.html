@@ -129,13 +129,12 @@
         var text = input.value.trim();
         if (text !== '') {
             const now = new Date();
-            const formatter = new Intl.DateTimeFormat('vi-VN', {
-                timeZone: 'Asia/Ho_Chi_Minh',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-});
-const timeString = formatter.format(now);
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000); // ms
+            const hanoi = new Date(utc + (7 * 60 * 60 * 1000)); // GMT+7
+
+            const hours = hanoi.getHours().toString().padStart(2, '0');
+            const minutes = hanoi.getMinutes().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
 
             socket.send({
                 username: username,
