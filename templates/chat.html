@@ -48,14 +48,14 @@
 
 <div id="chat"></div>
 
-<input id="message" placeholder="Type your message...">
+<input id="message" placeholder="Nhập tin nhắn của bạn...">
 <br/>
-<button id="send">Send</button>
-<button id="clear">Clear Chat</button>
-<button id="changeName">Change Name</button>
-<button id="pickColor">Pick Color</button>
-<button id="pickEmoji">Pick Emoji</button>
-<button id="setRoleBtn">Set Role</button>
+<button id="send">Gửi</button>
+<button id="clear">Xóa chat</button>
+<button id="changeName">Đổi tên</button>
+<button id="pickColor">Chọn màu</button>
+<button id="pickEmoji">Chọn emoji</button>
+<button id="setRoleBtn">Thiết lập vai trò</button>
 
 <div id="colorPalette"></div>
 <div id="emojiPalette"></div>
@@ -70,7 +70,7 @@
     var usersOnline = [];
 
     while (!username) {
-        username = prompt("Enter your name:");
+        username = prompt("Nhập tên của bạn:");
         username = username.trim();
     }
 
@@ -79,7 +79,7 @@
     }
 
     socket.on('connect', function() {
-        console.log('Connected to server');
+        console.log('Đã kết nối tới server');
         socket.emit('register', username);
     });
 
@@ -112,7 +112,7 @@
         chat.scrollTop = chat.scrollHeight;
 
         if (document.hidden) {
-            new Notification('New message', {
+            new Notification('Tin nhắn mới', {
                 body: `${msg.username}: ${msg.text}`,
                 icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png'
             });
@@ -153,7 +153,7 @@
     });
 
     document.getElementById('changeName').onclick = function() {
-        var newName = prompt("Enter new name:");
+        var newName = prompt("Nhập tên mới:");
         if (newName) {
             username = newName.trim();
             socket.emit('register', username);
@@ -217,25 +217,26 @@
     };
 
     document.getElementById('setRoleBtn').onclick = function() {
-    var panel = document.getElementById('setRolePanel');
-    if (panel.style.display === 'block') {
-        panel.style.display = 'none';
-    } else {
-        panel.innerHTML = '';
+        var panel = document.getElementById('setRolePanel');
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+        } else {
+            panel.innerHTML = '';
 
-        usersOnline.forEach(user => {
-            var div = document.createElement('div');
-            div.className = 'user-option';
-            div.textContent = user;
-            div.onclick = function() {
-                showEmojiPicker(user);
-            };
-            panel.appendChild(div);
-        });
+            usersOnline.forEach(user => {
+                var div = document.createElement('div');
+                div.className = 'user-option';
+                div.textContent = user;
+                div.onclick = function() {
+                    showEmojiPicker(user);
+                };
+                panel.appendChild(div);
+            });
 
-        panel.style.display = 'block';
-    }
-};
+            panel.style.display = 'block';
+        }
+    };
+
     function showEmojiPicker(selectedUser) {
         var panel = document.getElementById('setRolePanel');
         panel.innerHTML = `<h4>Chọn emoji cho ${selectedUser}:</h4>`;
@@ -248,7 +249,6 @@
             span.textContent = emoji;
             span.onclick = function() {
                 socket.emit('set_role', { username: selectedUser, role: emoji });
-                //alert(`Đã set ${emoji} cho ${selectedUser}`);
                 panel.style.display = 'none';
             };
             panel.appendChild(span);
