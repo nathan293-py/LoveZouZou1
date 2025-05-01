@@ -129,8 +129,14 @@
         var text = input.value.trim();
         if (text !== '') {
             const now = new Date();
-            now.setUTCHours(now.getUTCHours() + 7);
-            const timeString = now.toTimeString().slice(0, 5); // HH:MM theo giờ Hà Nội
+            const formatter = new Intl.DateTimeFormat('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+});
+const timeString = formatter.format(now);
+
             socket.send({
                 username: username,
                 text: text,
