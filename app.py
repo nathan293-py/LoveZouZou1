@@ -41,7 +41,7 @@ def handle_message(msg):
     
     # ✅ Tính giờ UTC+7
     now = datetime.utcnow() + timedelta(hours=7)
-    time_str = now.strftime("%H:%M")
+    time_str = now.strftime("%d/%m/%Y %H:%M")
 
     role = user_roles.get(username, '')
 
