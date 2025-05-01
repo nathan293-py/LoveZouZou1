@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Love ZouZou</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        #chat { width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; background: white; padding: 10px; margin-bottom: 10px; }
+        #message { width: 60%; padding: 10px; }
+        #send, #clear, #changeName, #pickColor, #pickEmoji, #setRoleBtn { padding: 10px 20px; margin: 5px 2px; }
+        .chat-message { margin-bottom: 8px; }
+        .chat-time { color: gray; font-size: 0.8em; margin-right: 8px; }
+        .chat-username { font-weight: bold; margin-right: 5px; }
+        #colorPalette, #emojiPalette, #setRolePanel {
+            display: none;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .color-option, .emoji-option, .user-option {
+            display: inline-block;
+            margin: 5px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+        .color-option:hover, .emoji-option:hover, .user-option:hover {
+            transform: scale(1.2);
+            background: #ddd;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+        }
+        .emoji-option {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>❤️ZouZou❤️</h2>
+
+<div id="chat"></div>
+
+<input id="message" placeholder="Type your message...">
+<br/>
+<button id="send">Send</button>
+<button id="clear">Clear Chat</button>
+<button id="changeName">Change Name</button>
+<button id="pickColor">Pick Color</button>
+<button id="pickEmoji">Pick Emoji</button>
+<button id="setRoleBtn">Set Role</button>
+
+<div id="colorPalette"></div>
+<div id="emojiPalette"></div>
+<div id="setRolePanel"></div>
+
+<script>
+    var socket = io();
+    var username = "";
+    var userColor = "#000000";
+    var colorVisible = false;
+    var emojiVisible = false;
+    var usersOnline = [];
+
+    while (!username) {
+        username = prompt("Enter your name:");
+        username = username.trim();
+    }
+
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
+
+    socket.on('connect', function() {
+        console.log('Connected to server');
+        socket.emit('register', username);
+    });
+
+    socket.on('update_users', function(users) {
+        usersOnline = users;
+    });
+
+    socket.on('message', function(msg) {
+        var chat = document.getElementById('chat');
+        var div = document.createElement('div');
+        div.classList.add('chat-message');
+
+        var timeSpan = document.createElement('span');
+        timeSpan.textContent = `[${msg.time}]`;
+        timeSpan.classList.add('chat-time');
+
+        var usernameSpan = document.createElement('span');
+        usernameSpan.textContent = (msg.role ? msg.role + " " : "") + msg.username + ":";
+        usernameSpan.classList.add('chat-username');
+        usernameSpan.style.color = msg.color;
+
+        var textSpan = document.createElement('span');
+        textSpan.textContent = " " + msg.text;
+
+        div.appendChild(timeSpan);
+        div.appendChild(usernameSpan);
+        div.appendChild(textSpan);
+
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+
+        if (document.hidden) {
+            new Notification('New message', {
+                body: `${msg.username}: ${msg.text}`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png'
+            });
+        }
+    });
+
+    socket.on('clear_chat', function() {
+        document.getElementById('chat').innerHTML = '';
+        alert("Xóa lịch sử chat rồi nha bé iu!");
+    });
+
+    document.getElementById('send').onclick = function() {
+        var input = document.getElementById('message');
+        var text = input.value.trim();
+        if (text !== '') {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            socket.send({
+                username: username,
+                text: text,
+                color: userColor,
+                time: timeString
+            });
+            input.value = '';
+        }
+    };
+
+    document.getElementById('clear').onclick = function() {
+        if (confirm("Bạn có chắc muốn xóa hết tin nhắn không?")) {
+            socket.emit('clear');
+        }
+    };
+
+    document.getElementById('message').addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById('send').click();
+        }
+    });
+
+    document.getElementById('changeName').onclick = function() {
+        var newName = prompt("Enter new name:");
+        if (newName) {
+            username = newName.trim();
+            socket.emit('register', username);
+        }
+    };
+
+    document.getElementById('pickColor').onclick = function() {
+        var palette = document.getElementById('colorPalette');
+        if (colorVisible) {
+            palette.style.display = 'none';
+            colorVisible = false;
+        } else {
+            palette.innerHTML = '';
+            const colors = [
+                '#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6', '#2ECC71', '#E74C3C', '#1ABC9C',
+                '#8E44AD', '#3498DB', '#E67E22', '#1D8348', '#D4AC0D', '#7FB3D5', '#D98880', '#5D6D7E',
+                '#F5B041', '#58D68D', '#DC7633', '#2980B9', '#16A085', '#C39BD3', '#F1948A', '#82E0AA',
+                '#F7DC6F', '#73C6B6', '#BB8FCE', '#F8C471', '#85C1E9', '#45B39D',
+                '#FFC0CB', '#FFB6C1', '#FF69B4', '#DB7093', '#C71585', '#DA70D6', '#BA55D3', '#9370DB',
+                '#8A2BE2', '#9400D3', '#9932CC', '#8B008B', '#800080', '#E6E6FA', '#D8BFD8', '#DDA0DD',
+                '#EE82EE', '#FF00FF', '#FF1493', '#FF7F50', '#FFD700', '#FFE4E1', '#AFEEEE', '#40E0D0'
+            ];
+            colors.forEach(color => {
+                var div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.backgroundColor = color;
+                div.onclick = function() {
+                    userColor = color;
+                    palette.style.display = 'none';
+                    colorVisible = false;
+                };
+                palette.appendChild(div);
+            });
+            palette.style.display = 'block';
+            colorVisible = true;
+        }
+    };
+
+    document.getElementById('pickEmoji').onclick = function() {
+        var palette = document.getElementById('emojiPalette');
+        if (emojiVisible) {
+            palette.style.display = 'none';
+            emojiVisible = false;
+        } else {
+            palette.innerHTML = '';
+            const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚'];
+            emojis.forEach(emoji => {
+                var span = document.createElement('span');
+                span.className = 'emoji-option';
+                span.textContent = emoji;
+                span.onclick = function() {
+                    var input = document.getElementById('message');
+                    input.value += emoji;
+                    input.focus();
+                };
+                palette.appendChild(span);
+            });
+            palette.style.display = 'block';
+            emojiVisible = true;
+        }
+    };
+
+    document.getElementById('setRoleBtn').onclick = function() {
+    var panel = document.getElementById('setRolePanel');
+    if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+    } else {
+        panel.innerHTML = '';
+
+        usersOnline.forEach(user => {
+            var div = document.createElement('div');
+            div.className = 'user-option';
+            div.textContent = user;
+            div.onclick = function() {
+                showEmojiPicker(user);
+            };
+            panel.appendChild(div);
+        });
+
+        panel.style.display = 'block';
+    }
+};
+    function showEmojiPicker(selectedUser) {
+        var panel = document.getElementById('setRolePanel');
+        panel.innerHTML = `<h4>Chọn emoji cho ${selectedUser}:</h4>`;
+
+        const emojis = ['😀','😂','😍','😎','🥰','🤩','😭','😡','👍','🎉'];
+
+        emojis.forEach(emoji => {
+            var span = document.createElement('span');
+            span.className = 'emoji-option';
+            span.textContent = emoji;
+            span.onclick = function() {
+                socket.emit('set_role', { username: selectedUser, role: emoji });
+                //alert(`Đã set ${emoji} cho ${selectedUser}`);
+                panel.style.display = 'none';
+            };
+            panel.appendChild(span);
+        });
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Hoặc tự nhập emoji...';
+        input.style.display = 'block';
+        input.style.marginTop = '10px';
+        input.style.padding = '5px';
+        input.style.fontSize = '16px';
+
+        var btn = document.createElement('button');
+        btn.textContent = 'Set';
+        btn.style.marginTop = '5px';
+        btn.onclick = function() {
+            if (input.value.trim() !== '') {
+                socket.emit('set_role', { username: selectedUser, role: input.value.trim() });
+                alert(`Đã set ${input.value.trim()} cho ${selectedUser}`);
+                panel.style.display = 'none';
+            }
+        };
+
+        panel.appendChild(input);
+        panel.appendChild(btn);
+    }
+</script>
+
+</body>
+</html>
