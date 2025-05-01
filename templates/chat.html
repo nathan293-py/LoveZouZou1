@@ -129,7 +129,8 @@
         var text = input.value.trim();
         if (text !== '') {
             const now = new Date();
-            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            now.setUTCHours(now.getUTCHours() + 7);
+            const timeString = now.toTimeString().slice(0, 5); // HH:MM theo giờ Hà Nội
             socket.send({
                 username: username,
                 text: text,
