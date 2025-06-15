@@ -62,24 +62,20 @@
 <div id="setRolePanel"></div>
 
 <script>
-    var socket = io();
-    var username = "";
+    var username = "Guest" + Math.floor(1000 + Math.random() * 9000);
     var userColor = "#000000";
     var colorVisible = false;
     var emojiVisible = false;
     var usersOnline = [];
 
-    while (!username) {
-        username = prompt("Nhập tên của bạn:");
-        username = username.trim();
-    }
-
     if (Notification.permission !== "granted") {
         Notification.requestPermission();
     }
 
+    var socket = io();
+
     socket.on('connect', function() {
-        console.log('Đã kết nối tới server');
+        console.log('Đã kết nối tới server với tên:', username);
         socket.emit('register', username);
     });
 
@@ -125,17 +121,18 @@
     });
 
     document.getElementById('send').onclick = function() {
-    var input = document.getElementById('message');
-    var text = input.value.trim();
-    if (text !== '') {
-        socket.send({
-            username: username,
-            text: text,
-            color: userColor
-        });
-        input.value = '';
-    }
-};
+        var input = document.getElementById('message');
+        var text = input.value.trim();
+        if (text !== '') {
+            socket.send({
+                username: username,
+                text: text,
+                color: userColor
+            });
+            input.value = '';
+        }
+    };
+
     document.getElementById('clear').onclick = function() {
         if (confirm("Bạn có chắc muốn xóa hết tin nhắn không?")) {
             socket.emit('clear');
@@ -163,15 +160,7 @@
             colorVisible = false;
         } else {
             palette.innerHTML = '';
-            const colors = [
-                '#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6', '#2ECC71', '#E74C3C', '#1ABC9C',
-                '#8E44AD', '#3498DB', '#E67E22', '#1D8348', '#D4AC0D', '#7FB3D5', '#D98880', '#5D6D7E',
-                '#F5B041', '#58D68D', '#DC7633', '#2980B9', '#16A085', '#C39BD3', '#F1948A', '#82E0AA',
-                '#F7DC6F', '#73C6B6', '#BB8FCE', '#F8C471', '#85C1E9', '#45B39D',
-                '#FFC0CB', '#FFB6C1', '#FF69B4', '#DB7093', '#C71585', '#DA70D6', '#BA55D3', '#9370DB',
-                '#8A2BE2', '#9400D3', '#9932CC', '#8B008B', '#800080', '#E6E6FA', '#D8BFD8', '#DDA0DD',
-                '#EE82EE', '#FF00FF', '#FF1493', '#FF7F50', '#FFD700', '#FFE4E1', '#AFEEEE', '#40E0D0'
-            ];
+            const colors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6', '#2ECC71', '#E74C3C', '#1ABC9C'];
             colors.forEach(color => {
                 var div = document.createElement('div');
                 div.className = 'color-option';
@@ -195,7 +184,7 @@
             emojiVisible = false;
         } else {
             palette.innerHTML = '';
-            const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚'];
+            const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😍','😘','😎'];
             emojis.forEach(emoji => {
                 var span = document.createElement('span');
                 span.className = 'emoji-option';
@@ -237,7 +226,7 @@
         var panel = document.getElementById('setRolePanel');
         panel.innerHTML = `<h4>Chọn emoji cho ${selectedUser}:</h4>`;
 
-        const emojis = ['🤴','👸','👑','👑','💎','♔','♕','♚','♛'];
+        const emojis = ['🤴','👸','👑','💎','♔','♕','♚','♛'];
 
         emojis.forEach(emoji => {
             var span = document.createElement('span');
